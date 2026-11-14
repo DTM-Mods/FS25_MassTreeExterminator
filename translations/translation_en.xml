@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<l10n>
+    <texts>
+        <text name="construction_tab_massTreeExterminator" text="Mass Tree Exterminator"/>
+        <text name="shopItem_massTreeExterminatorTool" text="Mass Tree Exterminator"/>
+        <text name="function_massTreeExterminatorTool" text="Mark an area and bulldoze all trees and bushes in it, for the bulldozer's fee per tree"/>
+
+        <text name="mte_brush_firstCorner" text="Set first corner"/>
+        <text name="mte_brush_secondCorner" text="Set opposite corner"/>
+        <text name="mte_brush_bulldoze" text="Bulldoze area (%s)"/>
+        <text name="mte_brush_newArea" text="Start a new area"/>
+        <text name="mte_brush_removeCorner" text="Remove last corner"/>
+        <text name="mte_brush_hint" text="Click two opposite corners of the area to bulldoze"/>
+
+        <text name="mte_hud_oneCorner" text="Corner 1 set. Click the opposite corner."/>
+        <text name="mte_hud_counting" text="Counting trees..."/>
+        <text name="mte_hud_selection" text="Area %d x %d m: %d trees, %d m² bushes, cost %s"/>
+        <text name="mte_hud_denied" text=" (%d trees on land that is not yours stay)"/>
+        <text name="mte_hud_feeEstimated" text=" (tree fee estimated, see log.txt)"/>
+        <text name="mte_hud_bushesOff" text=" [bushes off]"/>
+        <text name="mte_hud_nothing" text="No trees or bushes on your land in this area"/>
+        <text name="mte_hud_tooLarge" text="The area is too large (at most %d m per side)"/>
+
+        <text name="mte_confirm" text="Bulldoze %d trees and %d m² of bushes for %s?"/>
+        <text name="mte_result_done" text="Bulldozed %d trees and %d m² of bushes for %s"/>
+        <text name="mte_result_nothing" text="Nothing to bulldoze on your land in this area"/>
+        <text name="mte_result_noMoney" text="Not enough money: bulldozing this area costs %s"/>
+        <text name="mte_result_noPermission" text="You do not have permission to do landscaping"/>
+    </texts>
+</l10n>

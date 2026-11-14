@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<modDesc descVersion="114" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://validation.gdn.giants-software.com/xml/fs25/modDesc.xsd">
+    <author>DTM Mods, Fennell</author>
+    <version>1.0.0.0</version>
+    <title>
+        <en>Mass Tree Exterminator</en>
+        <de>Mass Tree Exterminator</de>
+    </title>
+    <description>
+        <en><![CDATA[Bulldoze every tree and bush in an area at once, instead of clicking each tree with the bulldozer.
+
+Open the construction menu (Shift + P by default), Landscaping > Mass Tree Exterminator. Left click one corner of the area and then the opposite corner: the area is drawn on the ground, the trees that will go get a red marker, and the cursor shows how many trees and how many m² of bushes there are and what it costs. Left click again and confirm to bulldoze them all. Right click takes back the last corner, Esc clears the area.
+
+Every tree costs what the game's bulldozer (demolition mode) charges for it, and goes stump and all; bushes cost the construction menu's landscaping rate per m². Only trees and bushes on land of your own farm are removed; trees that have already been felled, and trees on other land, stay. Works in multiplayer (the server does the work and charges your farm).
+
+Needs game version 1.25.1.0 or later (the bulldozer's tree fee).
+
+Console: mteBushes switches removing bushes on or off, mteInfo writes the bulldozer's tree fee details to the log, mteTrace logs what the game's bulldozer does when you remove one tree by hand, mteDebug toggles debug logging.]]></en>
+        <de><![CDATA[Alle Bäume und Büsche einer Fläche auf einmal abreißen, statt jeden Baum einzeln mit dem Bulldozer anzuklicken.
+
+Das Baumenü öffnen (Standard: Umschalt + P), Landschaftsbau > Mass Tree Exterminator. Eine Ecke der Fläche und dann die gegenüberliegende Ecke anklicken: Die Fläche wird am Boden angezeigt, die Bäume, die verschwinden, bekommen eine rote Markierung, und der Cursor zeigt, wie viele Bäume und wie viele m² Büsche es sind und was es kostet. Ein weiterer Linksklick mit Bestätigung reißt alles ab. Rechtsklick nimmt die letzte Ecke zurück, Esc löscht die Fläche.
+
+Jeder Baum kostet so viel, wie der Bulldozer des Spiels (Abrissmodus) dafür verlangt, und verschwindet samt Stumpf; Büsche kosten den Landschaftsbau-Preis des Baumenüs pro m². Entfernt werden nur Bäume und Büsche auf Land des eigenen Hofs; bereits gefällte Bäume und Bäume auf fremdem Land bleiben stehen. Funktioniert im Multiplayer (der Server erledigt die Arbeit und belastet deinen Hof).
+
+Benötigt Spielversion 1.25.1.0 oder neuer (die Baumgebühr des Bulldozers).
+
+Konsole: mteBushes schaltet das Entfernen von Büschen ein oder aus, mteInfo schreibt die Details zur Baumgebühr des Bulldozers ins Log, mteTrace protokolliert, was der Bulldozer des Spiels tut, wenn du einen Baum von Hand entfernst, mteDebug schaltet Debug-Ausgaben um.]]></de>
+    </description>
+
+    <iconFilename>icon_massTreeExterminator.png</iconFilename>
+    <multiplayer supported="true"/>
+    <l10n filenamePrefix="translations/translation"/>
+
+    <!-- Shift-P construction menu: own tab under Landscaping with the Mass Tree Exterminator tool -->
+    <constructionCategories>
+        <tab categoryName="landscaping" name="massTreeExterminator" title="$l10n_construction_tab_massTreeExterminator" iconFilename="icon_massTreeExterminator.png" refSize="1 1" iconUVs="0 0 1 1"/>
+    </constructionCategories>
+
+    <storeItems>
+        <storeItem xmlFilename="massTreeExterminatorTool.xml"/>
+    </storeItems>
+
+    <extraSourceFiles>
+        <sourceFile filename="scripts/events/MassTreeExterminatorRemoveEvent.lua"/>
+        <sourceFile filename="scripts/events/MassTreeExterminatorResultEvent.lua"/>
+        <sourceFile filename="scripts/MassTreeExterminator.lua"/>
+    </extraSourceFiles>
+</modDesc>
