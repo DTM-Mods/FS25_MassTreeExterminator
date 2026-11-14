@@ -128,8 +128,7 @@ python tools/build_zip.py        # dist/FS25_MassTreeExterminator.zip + GIANTS p
 
 ### 1.0.0.0
 
-- First version: area tool in the construction menu (Landscaping), trees for the bulldozer's own fee per tree, the
-  stumps they leave removed too, bushes per m², multiplayer.
+- First version: area tool in the construction menu (Landscaping), trees for the bulldozer's own fee per tree, the stumps they leave removed too, bushes per m², multiplayer.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/DTM-Mods/.github/main/assets/license.jpg" alt="License" width="100%">
