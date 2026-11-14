@@ -69,6 +69,24 @@ The server does the work: the client sends the area, the server checks the lands
 farm's money, removes the trees (a batch per frame) and bushes, charges the farm once and answers that player only.
 The farm is taken from the player's connection, not from what the client claims.
 
+<!-- dtm-screenshots -->
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/DTM-Mods/.github/main/assets/screenshots.jpg" alt="Screenshots" width="100%">
+</p>
+
+<p align="center">
+  <img src="screenshots/1.jpg" alt="A wood lot cleared next to the sawmill, stumps and all" width="49%">
+  <img src="screenshots/2.jpg" alt="Shift-P, Landscaping, Mass Tree Exterminator: click two opposite corners, the trees and bushes in the area are counted and priced" width="49%">
+</p>
+
+<p align="center">
+  <img src="screenshots/3.jpg" alt="One confirmation, one bill: every tree costs what the game's bulldozer charges for it" width="49%">
+  <img src="screenshots/4.jpg" alt="The whole area at once: 151 trees and their stumps gone in one go, trees on land that is not yours stay" width="49%">
+</p>
+
+<!-- /dtm-screenshots -->
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/DTM-Mods/.github/main/assets/installation.jpg" alt="Installation" width="100%">
 </p>
@@ -125,6 +143,10 @@ python tools/build_zip.py        # dist/FS25_MassTreeExterminator.zip + GIANTS p
 <p align="center">
   <img src="https://raw.githubusercontent.com/DTM-Mods/.github/main/assets/patch-notes.jpg" alt="Patch notes" width="100%">
 </p>
+
+### 1.0.0.1
+
+- Screenshots in the README and for the ModHub upload. Nothing changes in the game.
 
 ### 1.0.0.0
 

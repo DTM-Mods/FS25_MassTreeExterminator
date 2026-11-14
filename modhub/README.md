@@ -11,7 +11,7 @@ What to enter in the GIANTS ModHub upload form for this mod. Each text box below
 | Title English | Mass Tree Exterminator |
 | Title German | Mass Tree Exterminator |
 | Title French | Mass Tree Exterminator |
-| Version | `1` `0` `0` `0` |
+| Version | `1` `0` `0` `1` |
 | Author | DTM Mods, Fennell |
 | Manufacturer | Lizard |
 | Category 1 | Gameplay |
@@ -82,4 +82,5 @@ Utilisation : Menu de construction (Maj + P) > Aménagement paysager > Mass Tree
 - It ships console commands for checking the bulldozer's fee (`mteInfo`, `mteTrace`) and `mteDebug`. Your decision
   whether they stay in a ModHub build.
 - Tested in single player; multiplayer (dedicated server) not confirmed yet.
-- No screenshots yet (ModHub wants them): `screenshots/` like the other DTM mods.
+- Screenshots for the upload: [`screenshots/1.jpg` to `4.jpg`](../screenshots) (with captions; the uncaptioned
+  game shots are in `screenshots/originals/`).
