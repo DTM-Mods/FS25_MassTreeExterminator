@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <modDesc descVersion="116" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://validation.gdn.giants-software.com/xml/fs25/modDesc.xsd">
     <author>DTM Mods, Fennell</author>
-    <version>1.0.0.3</version>
+    <version>1.0.0.4</version>
     <title>
         <en>Mass Tree Exterminator</en>
     </title>
@@ -20,8 +20,9 @@ Needs game version 1.25.1.0 or later (the bulldozer's tree fee).
 
 Console: mteBushes switches removing bushes on or off, mteInfo writes the bulldozer's tree fee details to the log, mteTrace logs what the game's bulldozer does when you remove one tree by hand, mteDebug toggles debug logging.
 
-Changelog 1.0.0.3:
-- Updated for the current game version (modDesc version 116).]]></en>
+Changelog 1.0.0.4:
+- Description in GIANTS' ModHub layout (category, price, upkeep or hotkeys at the top).
+- New mod icon in the ModHub standard.]]></en>
         <de><![CDATA[Kategorie: Landschaftsbau > Mass Tree Exterminator (Baumenü)
 Preis: 0 € (du zahlst nur für die Bäume und Büsche, die du abreißt)
 Monatliche Unterhaltskosten: keine
@@ -36,8 +37,9 @@ Benötigt Spielversion 1.25.1.0 oder neuer (die Baumgebühr des Bulldozers).
 
 Konsole: mteBushes schaltet das Entfernen von Büschen ein oder aus, mteInfo schreibt die Details zur Baumgebühr des Bulldozers ins Log, mteTrace protokolliert, was der Bulldozer des Spiels tut, wenn du einen Baum von Hand entfernst, mteDebug schaltet Debug-Ausgaben um.
 
-Changelog 1.0.0.3:
-- An die aktuelle Spielversion angepasst (modDesc-Version 116).]]></de>
+Changelog 1.0.0.4:
+- Beschreibung im ModHub-Aufbau von GIANTS (Kategorie, Preis, Unterhalt bzw. Tasten oben).
+- Neues Mod-Icon im ModHub-Standard.]]></de>
     </description>
 
     <iconFilename>icon_massTreeExterminator.dds</iconFilename>
