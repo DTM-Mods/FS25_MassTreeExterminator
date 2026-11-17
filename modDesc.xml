@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<modDesc descVersion="114" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://validation.gdn.giants-software.com/xml/fs25/modDesc.xsd">
+<modDesc descVersion="115" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://validation.gdn.giants-software.com/xml/fs25/modDesc.xsd">
     <author>DTM Mods, Fennell</author>
-    <version>1.0.0.1</version>
+    <version>1.0.0.2</version>
     <title>
         <en>Mass Tree Exterminator</en>
-        <de>Mass Tree Exterminator</de>
     </title>
     <description>
         <en><![CDATA[Bulldoze every tree and bush in an area at once, instead of clicking each tree with the bulldozer.
@@ -15,7 +14,11 @@ Every tree costs what the game's bulldozer (demolition mode) charges for it, and
 
 Needs game version 1.25.1.0 or later (the bulldozer's tree fee).
 
-Console: mteBushes switches removing bushes on or off, mteInfo writes the bulldozer's tree fee details to the log, mteTrace logs what the game's bulldozer does when you remove one tree by hand, mteDebug toggles debug logging.]]></en>
+Console: mteBushes switches removing bushes on or off, mteInfo writes the bulldozer's tree fee details to the log, mteTrace logs what the game's bulldozer does when you remove one tree by hand, mteDebug toggles debug logging.
+
+Changelog 1.0.0.2:
+- Meets the GIANTS ModHub checks (TestRunner): textures, icon and modDesc brought up to date.
+- Errors are no longer hidden: they show in the log.]]></en>
         <de><![CDATA[Alle Bäume und Büsche einer Fläche auf einmal abreißen, statt jeden Baum einzeln mit dem Bulldozer anzuklicken.
 
 Das Baumenü öffnen (Standard: Umschalt + P), Landschaftsbau > Mass Tree Exterminator. Eine Ecke der Fläche und dann die gegenüberliegende Ecke anklicken: Die Fläche wird am Boden angezeigt, die Bäume, die verschwinden, bekommen eine rote Markierung, und der Cursor zeigt, wie viele Bäume und wie viele m² Büsche es sind und was es kostet. Ein weiterer Linksklick mit Bestätigung reißt alles ab. Rechtsklick nimmt die letzte Ecke zurück, Esc löscht die Fläche.
@@ -24,16 +27,20 @@ Jeder Baum kostet so viel, wie der Bulldozer des Spiels (Abrissmodus) dafür ver
 
 Benötigt Spielversion 1.25.1.0 oder neuer (die Baumgebühr des Bulldozers).
 
-Konsole: mteBushes schaltet das Entfernen von Büschen ein oder aus, mteInfo schreibt die Details zur Baumgebühr des Bulldozers ins Log, mteTrace protokolliert, was der Bulldozer des Spiels tut, wenn du einen Baum von Hand entfernst, mteDebug schaltet Debug-Ausgaben um.]]></de>
+Konsole: mteBushes schaltet das Entfernen von Büschen ein oder aus, mteInfo schreibt die Details zur Baumgebühr des Bulldozers ins Log, mteTrace protokolliert, was der Bulldozer des Spiels tut, wenn du einen Baum von Hand entfernst, mteDebug schaltet Debug-Ausgaben um.
+
+Changelog 1.0.0.2:
+- Erfüllt die GIANTS-ModHub-Prüfungen (TestRunner): Texturen, Icon und modDesc auf den neuesten Stand gebracht.
+- Fehler werden nicht mehr versteckt und erscheinen im Log.]]></de>
     </description>
 
-    <iconFilename>icon_massTreeExterminator.png</iconFilename>
+    <iconFilename>icon_massTreeExterminator.dds</iconFilename>
     <multiplayer supported="true"/>
     <l10n filenamePrefix="translations/translation"/>
 
     <!-- Shift-P construction menu: own tab under Landscaping with the Mass Tree Exterminator tool -->
     <constructionCategories>
-        <tab categoryName="landscaping" name="massTreeExterminator" title="$l10n_construction_tab_massTreeExterminator" iconFilename="icon_massTreeExterminator.png" refSize="1 1" iconUVs="0 0 1 1"/>
+        <tab categoryName="landscaping" name="massTreeExterminator" title="$l10n_construction_tab_massTreeExterminator" iconFilename="store_massTreeExterminator.dds" refSize="1 1" iconUVs="0 0 1 1"/>
     </constructionCategories>
 
     <storeItems>

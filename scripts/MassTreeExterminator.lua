@@ -25,6 +25,11 @@ MassTreeExterminator = {}
 local MTE = MassTreeExterminator
 local unpack = unpack or table.unpack
 
+--- All return values of a call, nils included: {n = count, ...}
+local function pack(...)
+    return {n = select("#", ...), ...}
+end
+
 MTE.MOD_NAME = g_currentModName
 MTE.MAX_SIDE = 1000                 -- m: a longer side is refused (server work)
 MTE.PREVIEW_REFRESH_MS = 5000       -- the counts of a marked area are refreshed this often
@@ -55,14 +60,50 @@ MTE.recountTimer = nil
 MTE.lastMessage = nil   -- {text, isWarning, time}
 MTE.jobs = {}           -- server: running removals
 
+--- Can string.format(fmt, ...) format these arguments? Every conversion needs an argument of a fitting type
+--- (a translation with a wrong placeholder must not break the message).
+local function canFormat(fmt, ...)
+    if type(fmt) ~= "string" then
+        return false
+    end
+    local n, i = select("#", ...), 0
+    for conversion in string.gmatch(fmt, "%%[%-%+ #0]*%d*%.?%d*(.)") do
+        if conversion ~= "%" then
+            i = i + 1
+            if i > n then
+                return false
+            end
+            local arg = (select(i, ...))
+            if string.find("cdiouxXeEfgG", conversion, 1, true) ~= nil then
+                if tonumber(arg) == nil then
+                    return false
+                end
+            elseif conversion == "s" or conversion == "q" then
+                if type(arg) ~= "string" and type(arg) ~= "number" then
+                    return false
+                end
+            else
+                return false
+            end
+        end
+    end
+    return true
+end
+MTE.canFormat = canFormat
+
+local function formatText(fmt, ...)
+    if canFormat(fmt, ...) then
+        return string.format(fmt, ...)
+    end
+    return tostring(fmt)
+end
+
 local function log(fmt, ...)
-    local ok, s = pcall(string.format, fmt, ...)
-    Logging.info("[MassTreeExterminator] " .. (ok and s or tostring(fmt)))
+    Logging.info("[MassTreeExterminator] " .. formatText(fmt, ...))
 end
 
 local function warn(fmt, ...)
-    local ok, s = pcall(string.format, fmt, ...)
-    Logging.warning("[MassTreeExterminator] " .. (ok and s or tostring(fmt)))
+    Logging.warning("[MassTreeExterminator] " .. formatText(fmt, ...))
 end
 
 local function dbg(fmt, ...)
@@ -74,20 +115,17 @@ MTE.log, MTE.warn = log, warn
 
 local function text(key, ...)
     local s = g_i18n:getText(key)
-    if select("#", ...) > 0 then
-        local ok, formatted = pcall(string.format, s, ...)
-        if ok then
-            return formatted
-        end
+    if select("#", ...) > 0 and canFormat(s, ...) then
+        return string.format(s, ...)
     end
     return s
 end
 MTE.text = text
 
 function MTE.formatMoney(amount)
-    if g_i18n ~= nil and g_i18n.formatMoney ~= nil then
-        local ok, s = pcall(g_i18n.formatMoney, g_i18n, amount, 0, true, true)
-        if ok and type(s) == "string" then
+    if g_i18n ~= nil and g_i18n.formatMoney ~= nil and type(amount) == "number" and amount == amount then
+        local s = g_i18n:formatMoney(amount, 0, true, true)
+        if type(s) == "string" then
             return s
         end
     end
@@ -122,20 +160,14 @@ end
 --- Is the land at (x, z) the farm's own land?
 function MTE.isOwnLand(farmId, x, z)
     local manager = g_farmlandManager
-    if manager == nil then
+    if manager == nil or type(x) ~= "number" or type(z) ~= "number" then
         return false
     end
     if manager.getOwnerIdAtWorldPosition ~= nil then
-        local ok, owner = pcall(manager.getOwnerIdAtWorldPosition, manager, x, z)
-        if ok then
-            return owner == farmId
-        end
+        return manager:getOwnerIdAtWorldPosition(x, z) == farmId
     end
     if manager.getIsOwnedByFarmAtWorldPosition ~= nil then
-        local ok, owned = pcall(manager.getIsOwnedByFarmAtWorldPosition, manager, farmId, x, z)
-        if ok then
-            return owned == true
-        end
+        return manager:getIsOwnedByFarmAtWorldPosition(farmId, x, z) == true
     end
     return false
 end
@@ -190,17 +222,17 @@ end
 function MTE.findTrees(rect)
     local cx, cz = (rect[1] + rect[3]) * 0.5, (rect[2] + rect[4]) * 0.5
     local ex, ez = math.max((rect[3] - rect[1]) * 0.5, 0.1), math.max((rect[4] - rect[2]) * 0.5, 0.1)
+    if overlapBox == nil or CollisionFlag == nil or CollisionFlag.TREE == nil then
+        warn("overlapBox or CollisionFlag.TREE not available, no trees found")
+        return {}
+    end
     local cy = MTE.getTerrainHeight(cx, cz)
     MTE.overlapHits = {seen = {}, list = {}}
     -- statics only (trees are static rigid bodies); the trunk position is checked below because the box also hits
     -- crowns reaching into the area
-    local ok, err = pcall(overlapBox, cx, cy, cz, 0, 0, 0, ex, 500, ez, "onTreeOverlap", MTE, CollisionFlag.TREE, false, false, true, false)
+    overlapBox(cx, cy, cz, 0, 0, 0, ex, 500, ez, "onTreeOverlap", MTE, CollisionFlag.TREE, false, false, true, false)
     local hits = MTE.overlapHits
     MTE.overlapHits = nil
-    if not ok then
-        warn("overlapBox failed: %s", tostring(err))
-        return {}
-    end
     local trees = {}
     for _, shape in ipairs(hits.list) do
         local x, y, z = getWorldTranslation(shape)
@@ -224,7 +256,7 @@ function MTE.deleteTree(shape)
         delete(shape)
     end
     if g_treePlantManager ~= nil and g_treePlantManager.removingSplitShape ~= nil then
-        pcall(g_treePlantManager.removingSplitShape, g_treePlantManager, shape)
+        g_treePlantManager:removingSplitShape(shape)
     end
     return true
 end
@@ -245,8 +277,11 @@ end
 
 --- Static wood around a tree's base (the tree itself included): list of shapes
 function MTE.woodNear(p)
+    if overlapSphere == nil or CollisionFlag == nil or CollisionFlag.TREE == nil or type(p.x) ~= "number" then
+        return {}
+    end
     MTE.stumpHits = {seen = {}, list = {}}
-    pcall(overlapSphere, p.x, p.y + 0.5, p.z, MTE.STUMP_RADIUS, "onStumpOverlap", MTE, CollisionFlag.TREE, false, false, true, false)
+    overlapSphere(p.x, p.y + 0.5, p.z, MTE.STUMP_RADIUS, "onStumpOverlap", MTE, CollisionFlag.TREE, false, false, true, false)
     local hits = MTE.stumpHits
     MTE.stumpHits = nil
     return hits.list
@@ -276,7 +311,7 @@ function MTE.removeStumps(positions, existing)
                     delete(shape)
                 end
                 if g_treePlantManager ~= nil and g_treePlantManager.removingSplitShape ~= nil then
-                    pcall(g_treePlantManager.removingSplitShape, g_treePlantManager, shape)
+                    g_treePlantManager:removingSplitShape(shape)
                 end
                 removed = removed + 1
             end
@@ -289,11 +324,11 @@ end
 function MTE.setAreaDirty(rect)
     local m = 10
     if g_densityMapHeightManager ~= nil and g_densityMapHeightManager.setCollisionMapAreaDirty ~= nil then
-        pcall(g_densityMapHeightManager.setCollisionMapAreaDirty, g_densityMapHeightManager, rect[1] - m, rect[2] - m, rect[3] + m, rect[4] + m, true)
+        g_densityMapHeightManager:setCollisionMapAreaDirty(rect[1] - m, rect[2] - m, rect[3] + m, rect[4] + m, true)
     end
     local aiSystem = g_currentMission ~= nil and g_currentMission.aiSystem or nil
     if aiSystem ~= nil and aiSystem.setAreaDirty ~= nil then
-        pcall(aiSystem.setAreaDirty, aiSystem, rect[1] - m, rect[3] + m, rect[2] - m, rect[4] + m)
+        aiSystem:setAreaDirty(rect[1] - m, rect[3] + m, rect[2] - m, rect[4] + m)
     end
 end
 
@@ -342,8 +377,8 @@ function MTE.getDestructClass()
     end
     local manager = g_constructionBrushTypeManager
     if manager ~= nil and manager.getClassObjectByTypeName ~= nil then
-        local ok, cls = pcall(manager.getClassObjectByTypeName, manager, "destruct")
-        if ok and type(cls) == "table" then
+        local cls = manager:getClassObjectByTypeName("destruct")
+        if type(cls) == "table" then
             return cls
         end
     end
@@ -393,8 +428,8 @@ function MTE.getProbeBrush()
         local cursor = MTE.makeProbeCursor()
         local instance = nil
         if type(cls.new) == "function" then
-            local ok, result = pcall(cls.new, nil, cursor)
-            if ok and type(result) == "table" then
+            local result = cls.new(nil, cursor)
+            if type(result) == "table" then
                 instance = result
             end
         end
@@ -489,12 +524,28 @@ local function validFee(v)
     return type(v) == "number" and v == v and v > 0 and v < 1e7
 end
 
---- Calls a fee getter for one tree (the tree is both the argument and what the probe cursor "hits")
+MTE.failedFeeMethods = {}   -- label -> true: getters that raised an error (shown in the log), never called again
+
+--- Calls a fee getter for one tree (the tree is both the argument and what the probe cursor "hits"). The getters are
+--- found by name in the game's classes; one that raises an error stops this call (the error is in the log), and the
+--- next call marks it failed and skips it, so the search goes on with the next candidate.
 function MTE.callFeeMethod(candidate, shape)
+    if MTE.feeCallPending ~= nil then
+        MTE.failedFeeMethods[MTE.feeCallPending] = true
+        warn("tree fee getter %s raised an error (see above), not used", MTE.feeCallPending)
+        MTE.feeCallPending = nil
+        MTE.probeShape = nil
+    end
+    if MTE.failedFeeMethods[candidate.label] or type(candidate.fn) ~= "function" or candidate.selfObj == nil
+        or not MTE.isStandingTree(shape) then
+        return nil
+    end
     MTE.probeShape = shape
-    local ok, value = pcall(candidate.fn, candidate.selfObj, shape)
+    MTE.feeCallPending = candidate.label
+    local value = candidate.fn(candidate.selfObj, shape)
+    MTE.feeCallPending = nil
     MTE.probeShape = nil
-    if ok and validFee(value) then
+    if validFee(value) then
         return value
     end
     return nil
@@ -521,29 +572,44 @@ end
 --- message, hovering the tree on a never-activated bulldozer whose cursor is ours, then hovering nothing so its
 --- highlight is reset. (Also caught if it goes through g_i18n:formatMoney.)
 --- record = true logs everything the brush did (first time only).
+--- If the game's function raises an error (it is in the log), the next call undoes what the probe had set up (the
+--- formatMoney hook) and the hover price is not used again: the fee then comes from the first tree or the next source.
 function MTE.priceByHover(shape, record)
+    if MTE.hoverPending ~= nil then
+        g_i18n.formatMoney = MTE.hoverPending.ownFormat
+        MTE.hoverPending = nil
+        MTE.probeShape, MTE.probeMessages, MTE.probeRecord = nil, nil, nil
+        MTE.hoverFailed = true
+        warn("the bulldozer's hover price raised an error (see above), not used any more")
+    end
+    if MTE.hoverFailed then
+        return nil
+    end
     local brush = MTE.getProbeBrush()
-    if brush == nil or type(brush.visualizeTreeMouseOver) ~= "function" or g_i18n == nil or g_i18n.formatMoney == nil then
+    if brush == nil or type(brush.visualizeTreeMouseOver) ~= "function" or g_i18n == nil or g_i18n.formatMoney == nil
+        or not MTE.isStandingTree(shape) then
         return nil
     end
     local amounts = {}
     local ownFormat = rawget(g_i18n, "formatMoney")    -- nil: the class method, restored by removing ours
     local format = g_i18n.formatMoney
     g_i18n.formatMoney = function(i18n, amount, ...)
-        if type(amount) == "number" then
+        if type(amount) == "number" and #amounts < 50 then
             amounts[#amounts + 1] = amount
         end
         return format(i18n, amount, ...)
     end
+    MTE.hoverPending = {ownFormat = ownFormat}
     MTE.probeRecord = record and {} or nil
     MTE.probeMessages = {}
     MTE.probeShape = shape
-    local ok, err = pcall(brush.visualizeTreeMouseOver, brush, shape)
+    brush:visualizeTreeMouseOver(shape)
     MTE.probeShape = nil
     local messages = MTE.probeMessages
     MTE.probeMessages = nil
-    local okReset, errReset = pcall(brush.visualizeTreeMouseOver, brush, nil)
+    brush:visualizeTreeMouseOver(nil)
     g_i18n.formatMoney = ownFormat
+    MTE.hoverPending = nil
     local calls = MTE.probeRecord
     MTE.probeRecord = nil
 
@@ -575,8 +641,8 @@ function MTE.priceByHover(shape, record)
         for _, a in ipairs(amounts) do
             amountList[#amountList + 1] = tostring(a)
         end
-        log("hover price probe: tree %s -> %s (call ok %s %s, reset ok %s %s); money formatted: %s; cursor calls: %s; brush fields: %s",
-            tostring(shape), tostring(price), tostring(ok), ok and "" or tostring(err), tostring(okReset), okReset and "" or tostring(errReset),
+        log("hover price probe: tree %s -> %s; money formatted: %s; cursor calls: %s; brush fields: %s",
+            tostring(shape), tostring(price),
             #amountList > 0 and table.concat(amountList, ", ") or "none", calls ~= nil and #calls > 0 and table.concat(calls, "; ") or "none",
             table.concat(fields, ", "))
     end
@@ -615,10 +681,7 @@ function MTE.resolveFee(sampleShape)
     warn("the bulldozer's tree fee was not found (game older than 1.25.1.0?), using %d per tree. The bulldozer's details follow; mteTrace shows what it does with a tree.",
         MTE.FALLBACK_TREE_FEE)
     -- what the bulldozer offers, so one test run is enough to find the fee
-    local ok, err = pcall(MTE.consoleInfo, MTE)
-    if not ok then
-        warn("bulldozer details failed: %s", tostring(err))
-    end
+    MTE:consoleInfo()
     return MTE.fee
 end
 
@@ -663,7 +726,7 @@ function MTE.getBushLayers()
         return MTE.bushLayers
     end
     local terrain = MTE.getTerrainNode()
-    if terrain == nil or getTerrainDataPlaneByName == nil then
+    if type(terrain) ~= "number" or terrain == 0 or getTerrainDataPlaneByName == nil then
         return {}
     end
     local names, seen = {}, {}
@@ -699,26 +762,26 @@ function MTE.getBushLayers()
                 end
             end
         end
-        pcall(scan, foliageSystem, 0)
+        scan(foliageSystem, 0)
     end
 
     local layers, seenIds = {}, {}
     local terrainSize = (g_currentMission ~= nil and tonumber(g_currentMission.terrainSize)) or 2048
     for _, name in ipairs(names) do
-        local ok, id = pcall(getTerrainDataPlaneByName, terrain, name)
-        if ok and type(id) == "number" and id ~= 0 and not seenIds[id] then
+        local id = getTerrainDataPlaneByName(terrain, name)
+        if type(id) == "number" and id ~= 0 and not seenIds[id] then
             seenIds[id] = true
             local numChannels = 4
             if getTerrainDetailNumChannels ~= nil then
-                local okC, n = pcall(getTerrainDetailNumChannels, id)
-                if okC and type(n) == "number" and n > 0 then
+                local n = getTerrainDetailNumChannels(id)
+                if type(n) == "number" and n > 0 then
                     numChannels = n
                 end
             end
             local pixelArea = 0.25
             if getDensityMapSize ~= nil then
-                local okS, size = pcall(getDensityMapSize, id)
-                if okS and type(size) == "number" and size > 0 then
+                local size = getDensityMapSize(id)
+                if type(size) == "number" and size > 0 then
                     pixelArea = (terrainSize / size) ^ 2
                 end
             end
@@ -742,10 +805,13 @@ end
 function MTE.bushArea(layer, x0, z0, x1, z1, clear)
     if layer.modifier == nil then
         local terrain = MTE.getTerrainNode()
-        local ok, modifier = pcall(DensityMapModifier.new, layer.id, 0, layer.numChannels, terrain)
-        if not ok or modifier == nil then
+        local modifier = nil
+        if DensityMapModifier ~= nil and DensityMapFilter ~= nil and terrain ~= nil and type(layer.id) == "number" and layer.id ~= 0 then
+            modifier = DensityMapModifier.new(layer.id, 0, layer.numChannels, terrain)
+        end
+        if modifier == nil then
             layer.modifier = false
-            warn("DensityMapModifier for %s failed: %s", layer.name, tostring(modifier))
+            warn("no DensityMapModifier for %s, its bushes are left alone", layer.name)
             return 0
         end
         local filter = DensityMapFilter.new(modifier)
@@ -924,16 +990,12 @@ function MTE.confirmAndRequest()
         end
     end
     if YesNoDialog ~= nil and YesNoDialog.show ~= nil then
-        local ok = pcall(YesNoDialog.show, onAnswer, nil, question)
-        if ok then
-            return
-        end
+        YesNoDialog.show(onAnswer, nil, question)
+        return
     end
     if g_gui ~= nil and g_gui.showYesNoDialog ~= nil then
-        local ok = pcall(g_gui.showYesNoDialog, g_gui, {text = question, callback = onAnswer})
-        if ok then
-            return
-        end
+        g_gui:showYesNoDialog({text = question, callback = onAnswer})
+        return
     end
     MTE.requestRemove()
 end
@@ -956,15 +1018,15 @@ end
 function MTE.getRequestFarm(request, connection)
     local farmId = request.farmId
     if connection ~= nil and g_currentMission.playerSystem ~= nil and g_currentMission.playerSystem.getPlayerByConnection ~= nil then
-        local ok, player = pcall(g_currentMission.playerSystem.getPlayerByConnection, g_currentMission.playerSystem, connection)
-        if ok and type(player) == "table" and player.farmId ~= nil then
+        local player = g_currentMission.playerSystem:getPlayerByConnection(connection)
+        if type(player) == "table" and player.farmId ~= nil then
             farmId = player.farmId
         end
     end
     local allowed = true
     if connection ~= nil and g_currentMission.getHasPlayerPermission ~= nil and Farm ~= nil and Farm.PERMISSION ~= nil and Farm.PERMISSION.LANDSCAPING ~= nil then
-        local ok, has = pcall(g_currentMission.getHasPlayerPermission, g_currentMission, Farm.PERMISSION.LANDSCAPING, connection)
-        if ok and has == false then
+        local has = g_currentMission:getHasPlayerPermission(Farm.PERMISSION.LANDSCAPING, connection)
+        if has == false then
             allowed = false
         end
     end
@@ -977,8 +1039,8 @@ function MTE.getFarmBalance(farmId)
         return nil
     end
     if farm.getBalance ~= nil then
-        local ok, balance = pcall(farm.getBalance, farm)
-        if ok and type(balance) == "number" then
+        local balance = farm:getBalance()
+        if type(balance) == "number" then
             return balance
         end
     end
@@ -1235,7 +1297,8 @@ local function describeValue(v)
     elseif t == "string" then
         return string.format("%q", string.sub(v, 1, 60))
     elseif t == "table" then
-        local name = MTE.globalNameOf(v) or MTE.globalNameOf(getmetatable(v) ~= nil and rawget(getmetatable(v), "__index") or nil)
+        local mt = getmetatable(v)
+        local name = MTE.globalNameOf(v) or MTE.globalNameOf(type(mt) == "table" and rawget(mt, "__index") or nil)
         return name ~= nil and ("<" .. name .. ">") or "<table>"
     end
     return tostring(v)
@@ -1333,7 +1396,7 @@ function MTE:consoleInfo()
                 end
             end
         end
-        pcall(scan, EventIds, "EventIds", 0)
+        scan(EventIds, "EventIds", 0)
         table.sort(found)
         log("tree events in EventIds: %s", #found > 0 and table.concat(found, ", ") or "none")
     end
@@ -1370,18 +1433,15 @@ function MTE:consoleTrace()
         for _, name in ipairs(names) do
             local original = cls[name]
             cls[name] = function(...)
-                local results = {pcall(original, ...)}
+                local results = pack(original(...))
                 if not quiet[name] then
-                    local line = string.format("trace destruct:%s(%s) -> %s", name, describeArgs(select(2, ...)), describeArgs(unpack(results, 2)))
+                    local line = string.format("trace destruct:%s(%s) -> %s", name, describeArgs(select(2, ...)), describeArgs(unpack(results, 1, results.n)))
                     if line ~= lastLine[name] then
                         lastLine[name] = line
                         log("%s", line)
                     end
                 end
-                if not results[1] then
-                    error(results[2], 0)
-                end
-                return unpack(results, 2)
+                return unpack(results, 1, results.n)
             end
             restores[#restores + 1] = function() cls[name] = original end
         end
@@ -1449,15 +1509,19 @@ function MTE:loadMap(name)
     MTE.bushLayers = nil
     MTE.jobs = {}
     MTE.globalNames = nil
-    for _, c in ipairs(MTE.CONSOLE) do
-        pcall(addConsoleCommand, c[1], c[2], c[3], MTE)
+    if addConsoleCommand ~= nil then
+        for _, c in ipairs(MTE.CONSOLE) do
+            addConsoleCommand(c[1], c[2], c[3], MTE)
+        end
     end
     log("loaded (%s)", g_dedicatedServer ~= nil and "dedicated server" or (g_server ~= nil and "server" or "client"))
 end
 
 function MTE:deleteMap()
-    for _, c in ipairs(MTE.CONSOLE) do
-        pcall(removeConsoleCommand, c[1])
+    if removeConsoleCommand ~= nil then
+        for _, c in ipairs(MTE.CONSOLE) do
+            removeConsoleCommand(c[1])
+        end
     end
     if MTE.traceRestore ~= nil then
         MTE:consoleTrace()

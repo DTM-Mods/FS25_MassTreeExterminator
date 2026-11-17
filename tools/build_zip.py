@@ -13,7 +13,7 @@ MOD_DIR = Path(__file__).resolve().parent.parent
 OUT = MOD_DIR / "dist" / "FS25_MassTreeExterminator.zip"
 EXCLUDE_DIRS = {"tools", "dist", ".git", ".github", ".vscode", "docs", "modhub", "screenshots"}
 EXCLUDE_FILES = {".gitignore", ".gitattributes", "LICENSE"}
-EXCLUDE_SUFFIXES = {".md", ".py", ".json", ".txt"}
+EXCLUDE_SUFFIXES = {".md", ".py", ".json", ".txt", ".png"}  # .png: source art only, the game loads the .dds
 KNOWN_SUFFIXES = {".xml", ".lua", ".i3d", ".shapes", ".dds", ".png", ".ogg", ".wav", ".gls", ".anim", ".cache", ".ies", ".pdf", ".l64", ".glsl"}
 
 

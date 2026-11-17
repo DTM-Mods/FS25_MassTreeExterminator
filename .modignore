@@ -1,0 +1,2 @@
+# source files the game does not load (the shipped icon is icon_massTreeExterminator.dds)
+*.png

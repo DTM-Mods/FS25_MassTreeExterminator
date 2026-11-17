@@ -8,7 +8,7 @@
         <functions>
             <function>$l10n_function_massTreeExterminatorTool</function>
         </functions>
-        <image>icon_massTreeExterminator.png</image>
+        <image>store_massTreeExterminator.dds</image>
         <price>0</price>
         <dailyUpkeep>0</dailyUpkeep>
         <lifetime>1000</lifetime>
@@ -32,5 +32,20 @@
 
     <base>
         <filename>$data/shared/assets/constructionCursorSimple.i3d</filename>
+        <canBeRenamed>false</canBeRenamed>
+        <boughtWithFarmland>false</boughtWithFarmland>
     </base>
+
+    <!-- never placed (see above); the empty sections only satisfy the GIANTS placeable checks -->
+    <placement useRandomYRotation="false" useManualYRotation="false">
+        <sounds>
+            <place template="smallImp"/>
+        </sounds>
+        <testAreas/>
+    </placement>
+    <clearAreas/>
+    <leveling requireLeveling="false">
+        <levelAreas/>
+    </leveling>
+    <indoorAreas/>
 </placeable>

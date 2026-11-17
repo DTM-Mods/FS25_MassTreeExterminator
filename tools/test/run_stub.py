@@ -483,6 +483,57 @@ def test_fee_sources():
     check(any(line.startswith("W ") and "tree fee was not found" in line for line in log_lines(lua)), "fallback warned in the log")
 
 
+def raises(fn, text):
+    try:
+        fn()
+    except Exception as e:  # noqa: BLE001 - lupa.LuaError
+        return text in str(e)
+    return False
+
+
+def test_fee_errors_show_and_recover():
+    # the bulldozer's hover price raises an error: it is not hidden, the next count undoes the probe and uses the getter
+    lua = fresh()
+    g = lua.globals()
+    lua.execute(r"""
+        g_server = {}
+        ORIGINAL_FORMAT_MONEY = g_i18n.formatMoney
+        function ConstructionBrushDestruct:visualizeTreeMouseOver(tree)
+            if tree ~= nil then error("hover broke") end
+        end
+    """)
+    world(lua)
+    MTE = g.MassTreeExterminator
+    MTE.addCorner(0, 100, 0)
+    check(raises(lambda: MTE.addCorner(150, 100, 50), "hover broke"), "the hover error is raised, not swallowed")
+    MTE.refreshPreview()
+    check(lua.eval("g_i18n.formatMoney == ORIGINAL_FORMAT_MONEY"), "formatMoney restored after the failed probe")
+    check(MTE.fee.kind == "method" and abs(MTE.preview.treeCost - 350) < 1e-6, "fee from the getter after the failed hover")
+    check(any(line.startswith("W ") and "hover price raised an error" in line for line in log_lines(lua)), "failed hover warned")
+
+    # a fee getter that raises an error: shown once, then skipped (here: the constant is used)
+    lua = fresh()
+    g = lua.globals()
+    lua.execute(r"""
+        g_server = {}
+        function ConstructionBrushDestruct:getTreeRemovalPrice(tree) error("getter broke") end
+        ConstructionBrushDestruct.TREE_REMOVAL_PRICE = 300
+    """)
+    world(lua)
+    MTE = g.MassTreeExterminator
+    MTE.addCorner(0, 100, 0)
+    check(raises(lambda: MTE.addCorner(150, 100, 50), "getter broke"), "the getter error is raised, not swallowed")
+    MTE.refreshPreview()
+    check(MTE.fee.kind == "constant" and abs(MTE.preview.treeCost - 900) < 1e-6, "failed getter skipped, constant used")
+    MTE.refreshPreview()
+    check(abs(MTE.preview.treeCost - 900) < 1e-6, "counts again without an error")
+
+    # a translation with a wrong placeholder: the text is shown unformatted instead of an error
+    check(MTE.text("mte_hud_denied", "x") == g.TEXTS["mte_hud_denied"], "mismatched argument: raw text")
+    check(MTE.canFormat("%d trees, %s", 3, "a") and not MTE.canFormat("%d trees", None) and not MTE.canFormat("%s %s", "a"),
+          "canFormat")
+
+
 def test_batches_and_bushes_off():
     lua = fresh()
     g = lua.globals()
@@ -593,7 +644,8 @@ def test_stump_sweep_spares_neighbours():
     check(g.MONEY[1].amount == -100, "stump free, tree at its fee")
 
 
-TESTS = [test_single_player, test_stump_sweep_spares_neighbours, test_multiplayer_round_trip, test_refusals, test_fee_sources, test_batches_and_bushes_off,
+TESTS = [test_single_player, test_stump_sweep_spares_neighbours, test_multiplayer_round_trip, test_refusals, test_fee_sources,
+         test_fee_errors_show_and_recover, test_batches_and_bushes_off,
          test_brush, test_console]
 
 
