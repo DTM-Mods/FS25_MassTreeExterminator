@@ -6,7 +6,11 @@
         <en>Mass Tree Exterminator</en>
     </title>
     <description>
-        <en><![CDATA[Bulldoze every tree and bush in an area at once, instead of clicking each tree with the bulldozer.
+        <en><![CDATA[Category: Landscaping > Mass Tree Exterminator (construction menu)
+Price: $0 (you only pay for the trees and bushes you bulldoze)
+Monthly upkeep: none
+
+Bulldoze every tree and bush in an area at once, instead of clicking each tree with the bulldozer.
 
 Open the construction menu (Shift + P by default), Landscaping > Mass Tree Exterminator. Left click one corner of the area and then the opposite corner: the area is drawn on the ground, the trees that will go get a red marker, and the cursor shows how many trees and how many m² of bushes there are and what it costs. Left click again and confirm to bulldoze them all. Right click takes back the last corner, Esc clears the area.
 
@@ -18,7 +22,11 @@ Console: mteBushes switches removing bushes on or off, mteInfo writes the bulldo
 
 Changelog 1.0.0.3:
 - Updated for the current game version (modDesc version 116).]]></en>
-        <de><![CDATA[Alle Bäume und Büsche einer Fläche auf einmal abreißen, statt jeden Baum einzeln mit dem Bulldozer anzuklicken.
+        <de><![CDATA[Kategorie: Landschaftsbau > Mass Tree Exterminator (Baumenü)
+Preis: 0 € (du zahlst nur für die Bäume und Büsche, die du abreißt)
+Monatliche Unterhaltskosten: keine
+
+Alle Bäume und Büsche einer Fläche auf einmal abreißen, statt jeden Baum einzeln mit dem Bulldozer anzuklicken.
 
 Das Baumenü öffnen (Standard: Umschalt + P), Landschaftsbau > Mass Tree Exterminator. Eine Ecke der Fläche und dann die gegenüberliegende Ecke anklicken: Die Fläche wird am Boden angezeigt, die Bäume, die verschwinden, bekommen eine rote Markierung, und der Cursor zeigt, wie viele Bäume und wie viele m² Büsche es sind und was es kostet. Ein weiterer Linksklick mit Bestätigung reißt alles ab. Rechtsklick nimmt die letzte Ecke zurück, Esc löscht die Fläche.
 
